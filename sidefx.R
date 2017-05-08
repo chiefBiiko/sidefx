@@ -31,12 +31,3 @@ hasSFX <- function(func, recursive=FALSE) {
   })
   token
 }
-
-# classifying builtins
-#cat(jsonlite::toJSON(builtins()), file='sfxlib.json')
-# persistent store
-sfxlib <- jsonlite::fromJSON('sfxlib.json')
-# identified n sidefx yielding functions in sfxlib yet:
-sum(sapply(sfxlib, isTRUE))
-# when marking do bulk processing
-sfxlib[grepl('^print', names(sfxlib))]
