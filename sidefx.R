@@ -3,17 +3,10 @@
 hasSFX <- function(func, recursive=FALSE) {
   stopifnot(is.function(func), is.logical(recursive))
   # scan input to character vectors
-  params <- if (is.primitive(func)) {
-    sig <- paste0(deparse(args(func)), collapse='')
-    spl <- strsplit(sub('^.*\\(([^\\)]*)\\).*$', '\\1', sig, perl=TRUE), 
-                    ',', fixed=TRUE)
-    
-    gsub('^\\s*|\\s*$', '', spl[[1]], perl=TRUE)
-    # cast chr vector to list !!!
-    
-  } else {
-    formals(func)
-  }
+  sig <- paste0(deparse(args(func)), collapse='')
+  spl <- strsplit(sub('^.*\\(([^\\)]*)\\).*$', '\\1', sig, perl=TRUE), 
+                  ',', fixed=TRUE)[[1]]
+  params <- gsub('^\\s*|\\s*$', '', spl, perl=TRUE)
   fbody <- if (is.primitive(func)) {
     sub('^.*function\\s\\([^\\)]*\\)\\s*', '', capture.output(func), perl=TRUE)
   } else {
@@ -23,6 +16,27 @@ hasSFX <- function(func, recursive=FALSE) {
   stdlib <- builtins()
   # ...
   # identify sidefx and inner functions in tokens !!!
- #token_df <- sourcetools::tokenize_string(paste0('{', fbody, '}'))
-  list(params, fbody)
+  token_df <- sourcetools::tokenize_string(paste0('{', fbody, '}'))
+  token <- split(token_df, 1L:nrow(token_df))  # df to list
+  token <- Filter(function(t) t$type != 'whitespace', token)  # toss whitespace
+  # find inner functions among symbols
+  token <- lapply(token, function(tok) {
+    append(tok, 
+           c(isFunc=!is.null(get0(tok$value, mode='function', inherits=TRUE))))
+  })
+  # demark brackets and 'function' (anonymous) - just been marked as funcs
+  token <- lapply(token, function(tok) {
+    if (tok$type == 'bracket' || tok$value == 'function') tok$isFunc <- FALSE
+    tok
+  })
+  token
 }
+
+# classifying builtins
+#cat(jsonlite::toJSON(builtins()), file='sfxlib.json')
+# persistent store
+sfxlib <- jsonlite::fromJSON('sfxlib.json')
+# identified n sidefx yielding functions in sfxlib yet:
+sum(sapply(sfxlib, isTRUE))
+# when marking do bulk processing
+sfxlib[grepl('^print', names(sfxlib))]
