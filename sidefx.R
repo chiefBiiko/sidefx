@@ -24,9 +24,11 @@ hasSFX <- function(func, recursive=FALSE) {
     append(tok, 
            c(isFunc=!is.null(get0(tok$value, mode='function', inherits=TRUE))))
   })
-  # demark brackets and 'function' (anonymous) - just been marked as funcs
+  # demark ops and 'function' (anonymous) - just been marked as funcs
   token <- lapply(token, function(tok) {
-    if (tok$type == 'bracket' || tok$value == 'function') tok$isFunc <- FALSE
+    if (tok$type %in% c('bracket', 'operator') || tok$value == 'function') {
+      tok$isFunc <- FALSE
+    }
     tok
   })
   token
