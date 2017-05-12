@@ -33,6 +33,7 @@ sum(sapply(sfxlib, function(b) b != ''))
 
 # when marking do bulk processing
 #sfxlib[grepl('^(s)?print', names(sfxlib))] <- 'output'
+#sfxlib[grepl('^cat', names(sfxlib))] <- 'output'
 
 # saving 2 persistent store
 cat(jsonlite::toJSON(sfxlib), file='sfxlib.json')
