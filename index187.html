@@ -1,0 +1,137 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>chains</title>
+    <script>
+      // entry point
+      function initChainGame() {
+        'use strict'
+        const body = document.querySelector('body')
+        const toggler = document.createElement('button') // playback toggler
+        var interval_id // interval reference
+        // std helpers
+        function isBetween(number, min, max) { // min and max are inclusive
+          return number >= min && number <= max
+        }
+        function randomArrayPick(array) {
+          return array[Math.floor(Math.random() * array.length)]
+        }
+        function randomIntInRange(min, max) { // min and max are inclusive
+          const minceil = Math.ceil(min)
+          const maxflo = Math.floor(max)
+          return Math.floor(Math.random() * (maxflo - minceil + 1) + minceil)
+        }
+        // helper called in interval to manage animation of all chains
+        function updateChains(chainclass='_chain') {
+          const chains = Array.from(document.getElementsByClassName(chainclass))
+          if (chains.length !== 0) {
+            chains.forEach(chain => {
+              chain._top = chain._top + chain._speed
+              chain.style.top = `${chain._top}px`
+              // TODO: make am swing a bit !!!
+              console.log('chain.style.transform', chain.style.transform)
+              console.log('chain._rotation', chain._rotation)
+              // const rotation = Math.abs(chain._rotation) > 25 ? -1 : 1
+              var rotation = 1
+              Math.abs(chain._rotation) === 25 ? rotation *= -1 : rotation *= 1
+              // if (chain._rotation < -25) {
+              //   rotation = 1
+              // } else if (chain._rotation > 25) {
+              //   rotation = -1
+              // } else {
+              //   rotation = 1
+              // }
+              chain.style.transform = `rotate(${chain._rotation += 1 * rotation}deg)`
+              // if (/*isBetween(chain._rotation, -25, -1)*/) {
+              //   chain.style.transform = `rotate(${++chain._rotation}deg)`
+              // } else if (/*isBetween(chain._rotation, 0, 25)*/) {
+              //   chain.style.transform = `rotate(${--chain._rotation}deg)`
+              // }
+              // chain.style.transform = `rotate(${
+              //   chain._rotation >= 0 ? ++chain._rotation : --chain._rotation
+              // }deg)`
+              if (chain._top > window.innerHeight) { // out of bounds
+                chain.parentNode.removeChild(chain)
+              }
+            })
+          } else {
+            const num_chains = randomIntInRange(1, 5)
+            for (let i = 0; i < num_chains; i++) {
+              const edge = randomIntInRange(20, 50)
+              const worth = randomIntInRange(edge / 2, edge * 2)
+              body.appendChild(makeChain('_chain', edge, edge, worth))
+            }
+          }
+        }
+        // helper that destroys and kills all chains
+        function destroyChains(chainclass='_chain') {
+          const chains = Array.from(document.getElementsByClassName(chainclass))
+          chains.forEach(chain => chain.parentNode.removeChild(chain))
+        }
+        // chain factory
+        function makeChain(chainclass='_chain', width=40, height=40, worth=10) {
+          const chain = document.createElement('div')
+          chain.className = chainclass
+          chain._worth = worth
+          chain._speed = randomIntInRange(1, 2)
+          chain._rotation = 0
+          // chain styling
+          chain.style.zIndex = 9999
+          chain.style.backgroundColor = '#FFD000'
+          chain.style.cursor = 'crosshair'
+          chain.style.width = `${width}px`
+          chain.style.height = `${height}px`
+          // positioning - set a quasi-random position within the viewport
+          chain.style.position = 'fixed'
+          chain.style.top = `${randomIntInRange(-height, 0)}px`
+          chain.style.left =
+            `${randomIntInRange(0, window.innerWidth - width)}px`
+          // make the chain swang
+          // ...
+          // setting numeric position attributes for less parsing in interval
+          chain._top = parseInt(chain.style.top)
+          // chain._left = parseInt(chain.style.left)
+          chain._rotation = 0
+          // register a click handler for the new element
+          chain.onclick = function(e) { // this === chain
+            console.log(`snatched a chain worth ${this._worth}€$!`)
+            this.parentNode.removeChild(this)
+          }
+          // factory return
+          return chain
+        }
+        // toggler styling
+        toggler.style.zIndex = 10000
+        toggler.style.cursor = 'pointer'
+        toggler.style.position = 'fixed'
+        toggler.style.right = '10px'
+        toggler.innerText = 'make it chain rain!'
+        // a little logic
+        toggler.playing = false
+        toggler.onclick = function() { // this === toggler
+          if (this.playing) { // stop and kill all chains
+            window.clearInterval(interval_id)
+            destroyChains('_chain')
+            this.playing = false
+            this.innerText = 'start chain rain'
+          } else {
+            const num_chains = randomIntInRange(1, 5)
+            for (let i = 0; i < num_chains; i++) {
+              const edge = randomIntInRange(20, 50)
+              const worth = randomIntInRange(edge / 2, edge * 2)
+              body.appendChild(makeChain('_chain', edge, edge, worth))
+            }
+            interval_id =
+              window.setInterval(updateChains.bind(null, '_chain'), 50)
+            this.playing = true
+            this.innerText = 'stop chain rain'
+          }
+        }
+        body.appendChild(toggler)
+      }
+      window.onload = initChainGame
+    </script>
+  </head>
+  <body></body>
+</html>
