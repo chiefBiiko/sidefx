@@ -11,9 +11,6 @@
         const toggler = document.createElement('button') // playback toggler
         var interval_id // interval reference
         // std helpers
-        function isBetween(number, min, max) { // min and max are inclusive
-          return number >= min && number <= max
-        }
         function randomArrayPick(array) {
           return array[Math.floor(Math.random() * array.length)]
         }
@@ -27,37 +24,23 @@
           const chains = Array.from(document.getElementsByClassName(chainclass))
           if (chains.length !== 0) {
             chains.forEach(chain => {
+              // setting y position
               chain._top = chain._top + chain._speed
               chain.style.top = `${chain._top}px`
-              // TODO: make am swing a bit !!!
-              console.log('chain.style.transform', chain.style.transform)
-              console.log('chain._rotation', chain._rotation)
-              // const rotation = Math.abs(chain._rotation) > 25 ? -1 : 1
-              var rotation = 1
-              Math.abs(chain._rotation) === 25 ? rotation *= -1 : rotation *= 1
-              // if (chain._rotation < -25) {
-              //   rotation = 1
-              // } else if (chain._rotation > 25) {
-              //   rotation = -1
-              // } else {
-              //   rotation = 1
-              // }
-              chain.style.transform = `rotate(${chain._rotation += 1 * rotation}deg)`
-              // if (/*isBetween(chain._rotation, -25, -1)*/) {
-              //   chain.style.transform = `rotate(${++chain._rotation}deg)`
-              // } else if (/*isBetween(chain._rotation, 0, 25)*/) {
-              //   chain.style.transform = `rotate(${--chain._rotation}deg)`
-              // }
-              // chain.style.transform = `rotate(${
-              //   chain._rotation >= 0 ? ++chain._rotation : --chain._rotation
-              // }deg)`
-              if (chain._top > window.innerHeight) { // out of bounds
+              // alternating rotation direction
+              Math.abs(chain._rotationAngle) >= 25 ?
+                chain._rotationDirection *= -1 : chain._rotationDirection *= 1
+              chain._rotationAngle += chain._speed * chain._rotationDirection
+              // chain swanging
+              chain.style.transform = `rotate(${chain._rotationAngle}deg)`
+               // toss once out of bounds
+              if (chain._top > window.innerHeight) {
                 chain.parentNode.removeChild(chain)
               }
             })
           } else {
             const num_chains = randomIntInRange(1, 5)
-            for (let i = 0; i < num_chains; i++) {
+            for (let i = 0; i < num_chains; i++) { // render new chains
               const edge = randomIntInRange(20, 50)
               const worth = randomIntInRange(edge / 2, edge * 2)
               body.appendChild(makeChain('_chain', edge, edge, worth))
@@ -75,7 +58,8 @@
           chain.className = chainclass
           chain._worth = worth
           chain._speed = randomIntInRange(1, 2)
-          chain._rotation = 0
+          chain._rotationAngle = 0
+          chain._rotationDirection = 1
           // chain styling
           chain.style.zIndex = 9999
           chain.style.backgroundColor = '#FFD000'
@@ -87,12 +71,8 @@
           chain.style.top = `${randomIntInRange(-height, 0)}px`
           chain.style.left =
             `${randomIntInRange(0, window.innerWidth - width)}px`
-          // make the chain swang
-          // ...
           // setting numeric position attributes for less parsing in interval
           chain._top = parseInt(chain.style.top)
-          // chain._left = parseInt(chain.style.left)
-          chain._rotation = 0
           // register a click handler for the new element
           chain.onclick = function(e) { // this === chain
             console.log(`snatched a chain worth ${this._worth}€$!`)
