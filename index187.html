@@ -75,6 +75,9 @@
           // register a click handler for the new element
           chain.onclick = function(e) { // this === chain
             const score = document.querySelector('#_chainrain-score')
+            body.appendChild(makeHitBubble(this._worth,
+                                          this.style.top,
+                                          this.style.left))
             score._score += this._worth
             score.innerText = `${score._score}`
             this.parentNode.removeChild(this)
@@ -82,7 +85,23 @@
           // factory return
           return chain
         }
-        // make controls board
+        // hit bubble factory
+        function makeHitBubble(worth, top, left) {
+          const bubble = document.createElement('span')
+          // bubble ...styling
+          bubble.innerText = `${worth}$€`
+          bubble.style.zIndex = 10000
+          bubble.style.position = 'fixed'
+          bubble.style.left = left
+          bubble.style.top = top
+          bubble.style.backgroundColor = '#fff'
+          window.setTimeout(() => {
+            bubble.parentNode.removeChild(bubble)
+          }, 1000)
+          // factory return
+          return bubble
+        }
+        // controls factory
         function makeControls() {
           const container = document.createElement('div')
           const toggler = document.createElement('button') // playback toggler
