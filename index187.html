@@ -8,7 +8,6 @@
       function initChainGame() {
         'use strict'
         const body = document.querySelector('body')
-        const toggler = document.createElement('button') // playback toggler
         var interval_id // interval reference
         // std helpers
         function randomArrayPick(array) {
@@ -38,9 +37,9 @@
                 chain.parentNode.removeChild(chain)
               }
             })
-          } else {
+          } else { // render new chains
             const num_chains = randomIntInRange(1, 5)
-            for (let i = 0; i < num_chains; i++) { // render new chains
+            for (let i = 0; i < num_chains; i++) {
               const edge = randomIntInRange(20, 50)
               const worth = randomIntInRange(edge / 2, edge * 2)
               body.appendChild(makeChain('_chain', edge, edge, worth))
@@ -75,40 +74,62 @@
           chain._top = parseInt(chain.style.top)
           // register a click handler for the new element
           chain.onclick = function(e) { // this === chain
-            console.log(`snatched a chain worth ${this._worth}€$!`)
+            const score = document.querySelector('#_chainrain-score')
+            score._score += this._worth
+            score.innerText = `${score._score}`
             this.parentNode.removeChild(this)
           }
           // factory return
           return chain
         }
-        // toggler styling
-        toggler.style.zIndex = 10000
-        toggler.style.cursor = 'pointer'
-        toggler.style.position = 'fixed'
-        toggler.style.right = '10px'
-        toggler.innerText = 'make it chain rain!'
-        // a little logic
-        toggler.playing = false
-        toggler.onclick = function() { // this === toggler
-          if (this.playing) { // stop and kill all chains
-            window.clearInterval(interval_id)
-            destroyChains('_chain')
-            this.playing = false
-            this.innerText = 'start chain rain'
-          } else {
-            const num_chains = randomIntInRange(1, 5)
-            for (let i = 0; i < num_chains; i++) {
-              const edge = randomIntInRange(20, 50)
-              const worth = randomIntInRange(edge / 2, edge * 2)
-              body.appendChild(makeChain('_chain', edge, edge, worth))
+        // make controls board
+        function makeControls() {
+          const container = document.createElement('div')
+          const toggler = document.createElement('button') // playback toggler
+          const scoreboard = document.createElement('div')
+          const score = document.createElement('div')
+          // container styling
+          container.style.zIndex = 10000
+          container.style.display = 'inline-block'
+          container.style.position = 'fixed'
+          container.style.right = '10px'
+          // toggler styling
+          toggler.innerText = 'play chain rain!'
+          toggler.style.cursor = 'pointer'
+          // scoreboard and score ...styling
+          scoreboard.innerText = '©@$h:'
+          score.id = '_chainrain-score'
+          score.innerText = '0'
+          score._score = 0
+          // a little logic
+          toggler.playing = false
+          toggler.onclick = function() { // this === toggler
+            if (this.playing) { // stop and kill all chains
+              window.clearInterval(interval_id)
+              destroyChains('_chain')
+              this.playing = false
+              this.innerText = 'play chain rain!'
+            } else {
+              const num_chains = randomIntInRange(1, 5)
+              for (let i = 0; i < num_chains; i++) {
+                const edge = randomIntInRange(20, 50)
+                const worth = randomIntInRange(edge / 2, edge * 2)
+                body.appendChild(makeChain('_chain', edge, edge, worth))
+              }
+              interval_id =
+                window.setInterval(updateChains.bind(null, '_chain'), 50)
+              this.playing = true
+              this.innerText = 'stop chain rain!'
             }
-            interval_id =
-              window.setInterval(updateChains.bind(null, '_chain'), 50)
-            this.playing = true
-            this.innerText = 'stop chain rain'
           }
+          // assembling controls
+          scoreboard.appendChild(score)
+          container.appendChild(toggler)
+          container.appendChild(scoreboard)
+          // factory return
+          return container
         }
-        body.appendChild(toggler)
+        body.appendChild(makeControls())
       }
       window.onload = initChainGame
     </script>
