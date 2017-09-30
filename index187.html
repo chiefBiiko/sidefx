@@ -2,11 +2,9 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>chains</title>
     <script>
-      // TODO: implement sound thru AudioBuffers? 
-      // entry point
-      function initChainGame() {
+      // TODO: implement sound in a hyperportable way! how???
+      function initializeChainGame() {
         'use strict'
         const body = document.querySelector('body')
         var interval_id // interval reference
@@ -14,22 +12,22 @@
         function randomArrayPick(array) {
           return array[Math.floor(Math.random() * array.length)]
         }
-        function randomIntInRange(min, max) { // min and max are inclusive
+        function randomIntegerInRange(min, max) { // min and max are inclusive
           const minceil = Math.ceil(min)
           const maxflo = Math.floor(max)
           return Math.floor(Math.random() * (maxflo - minceil + 1) + minceil)
         }
         // helper called in interval to manage animation of all chains
-        function updateChains(chainclass='_chain') {
-          const chains = Array.from(document.getElementsByClassName(chainclass))
+        function updateChains() {
+          const chains = Array.from(document.getElementsByClassName('_chain'))
           if (chains.length !== 0) {
             chains.forEach(chain => {
               // setting y position
-              chain._top = chain._top + chain._speed
+              chain._top += chain._speed
               chain.style.top = `${chain._top}px`
               // alternating rotation direction
               Math.abs(chain._rotationAngle) >= 25 ?
-                chain._rotationDirection *= -1 : chain._rotationDirection *= 1
+                chain._rotationDirection *= -1 : chain._rotationDirection
               chain._rotationAngle += chain._speed * chain._rotationDirection
               // chain swanging
               chain.style.transform = `rotate(${chain._rotationAngle}deg)`
@@ -39,46 +37,45 @@
               }
             })
           } else { // render new chains
-            const num_chains = randomIntInRange(1, 5)
+            const num_chains = randomIntegerInRange(1, 5)
             for (let i = 0; i < num_chains; i++) {
-              const edge = randomIntInRange(20, 50)
-              const worth = randomIntInRange(edge / 2, edge * 2)
-              body.appendChild(makeChain('_chain', edge, edge, worth))
+              const edge = randomIntegerInRange(20, 50)
+              const worth = randomIntegerInRange(edge / 2, edge * 2)
+              body.appendChild(makeChain(edge, edge, worth))
             }
           }
         }
         // helper that destroys and kills all chains
-        function destroyChains(chainclass='_chain') {
-          const chains = Array.from(document.getElementsByClassName(chainclass))
+        function destroyChains() {
+          const chains = Array.from(document.getElementsByClassName('_chain'))
           chains.forEach(chain => chain.parentNode.removeChild(chain))
         }
         // chain factory
-        function makeChain(chainclass='_chain', width=40, height=40, worth=10) {
+        function makeChain(width=25, height=25, worth=10) {
           const chain = document.createElement('div')
-          chain.className = chainclass
+          chain.className = '_chain'
           chain._worth = worth
-          chain._speed = randomIntInRange(1, 2)
+          chain._speed = randomIntegerInRange(1, 2)
           chain._rotationAngle = 0
           chain._rotationDirection = 1
           // chain styling
           chain.style.zIndex = 9999
           chain.style.backgroundColor = '#FFD000'
-          chain.style.cursor = 'crosshair'
+          chain.style.cursor = 'pointer'
           chain.style.width = `${width}px`
           chain.style.height = `${height}px`
           // positioning - set a quasi-random position within the viewport
           chain.style.position = 'fixed'
-          chain.style.top = `${randomIntInRange(-height, 0)}px`
+          chain.style.top = `${randomIntegerInRange(-height, 0)}px`
           chain.style.left =
-            `${randomIntInRange(0, window.innerWidth - width)}px`
+            `${randomIntegerInRange(0, window.innerWidth - width)}px`
           // setting numeric position attributes for less parsing in interval
           chain._top = parseInt(chain.style.top)
           // register a click handler for the new element
           chain.onclick = function(e) { // this === chain
             const score = document.querySelector('#_chainrain-score')
-            body.appendChild(makeHitBubble(this._worth,
-                                          this.style.top,
-                                          this.style.left))
+            body.appendChild(makeHitBubble(this._worth, this.style.top,
+                                           this.style.left))
             score._score += this._worth
             score.innerText = `${score._score}`
             this.parentNode.removeChild(this)
@@ -95,7 +92,6 @@
           bubble.style.position = 'fixed'
           bubble.style.left = left
           bubble.style.top = top
-          bubble.style.backgroundColor = '#fff'
           window.setTimeout(() => {
             bubble.parentNode.removeChild(bubble)
           }, 1000)
@@ -104,19 +100,21 @@
         }
         // controls factory
         function makeControls() {
-          // TODO: make divs spans
           const container = document.createElement('div')
-          const toggler = document.createElement('button') // playback toggler
-          const scoreboard = document.createElement('div')
-          const score = document.createElement('div')
+          const toggler = document.createElement('div') // playback toggler
+          const scoreboard = document.createElement('span')
+          const score = document.createElement('span')
           // container styling
           container.style.zIndex = 10000
-          container.style.display = 'inline-block'
           container.style.position = 'fixed'
           container.style.right = '10px'
+          container.style.top = '10px'
+          container.style.display = toggler.style.display = ' inline-block'
+          container.style.textAlign = 'center'
           // toggler styling
-          toggler.innerText = 'play chain rain!'
+          toggler.innerText = 'play!'
           toggler.style.cursor = 'pointer'
+          toggler.style.marginBottom = '10px'
           // scoreboard and score ...styling
           scoreboard.innerText = '©@$h:'
           score.id = '_chainrain-score'
@@ -127,32 +125,34 @@
           toggler.onclick = function() { // this === toggler
             if (this.playing) { // stop and kill all chains
               window.clearInterval(interval_id)
-              destroyChains('_chain')
+              destroyChains()
               this.playing = false
-              this.innerText = 'play chain rain!'
+              this.innerText = 'play!'
             } else {
-              const num_chains = randomIntInRange(1, 5)
+              const num_chains = randomIntegerInRange(1, 5)
               for (let i = 0; i < num_chains; i++) {
-                const edge = randomIntInRange(20, 50)
-                const worth = randomIntInRange(edge / 2, edge * 2)
-                body.appendChild(makeChain('_chain', edge, edge, worth))
+                const edge = randomIntegerInRange(20, 50)
+                const worth = randomIntegerInRange(edge / 2, edge * 2)
+                body.appendChild(makeChain(edge, edge, worth))
               }
               interval_id =
-                window.setInterval(updateChains.bind(null, '_chain'), 50)
+                window.setInterval(updateChains, 50)
               this.playing = true
-              this.innerText = 'stop chain rain!'
+              this.innerText = 'quit!'
             }
           }
           // assembling controls
+          scoreboard.appendChild(document.createElement('br'))
           scoreboard.appendChild(score)
           container.appendChild(toggler)
+          container.appendChild(document.createElement('br'))
           container.appendChild(scoreboard)
           // factory return
           return container
         }
         body.appendChild(makeControls())
       }
-      window.onload = initChainGame
+      window.onload = initializeChainGame
     </script>
   </head>
   <body></body>
